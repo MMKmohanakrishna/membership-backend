@@ -14,6 +14,12 @@ import { ROLES } from '../config/constants.js';
 
 const router = express.Router();
 
+// Debug: indicate this module was loaded on startup
+console.log('DEBUG: authRoutes module loaded');
+
+// Simple ping to verify mounted path
+router.get('/ping', (req, res) => res.json({ ok: true, route: '/auth/ping' }));
+
 // Validation rules
 const registerValidation = [
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
