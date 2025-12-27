@@ -70,7 +70,13 @@ const authLimiter = rateLimit({
 
 app.use('/api/', limiter);
 app.use('/api/v1/auth/login', authLimiter);
+// Temporary health/check route for POST diagnostics
+app.post('/__test_post', (req, res) => {
+  console.log('DEBUG: Received POST /__test_post');
+  return res.status(200).json({ ok: true, time: new Date().toISOString() });
+});
 
+console.log('DEBUG: Mounting auth and API routes now');
 // Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/gyms', gymRoutes); // Super admin only
