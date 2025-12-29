@@ -82,13 +82,13 @@ app.post('/__test_post', (req, res) => {
 });
 
 console.log('DEBUG: Mounting auth and API routes now');
-app.use('/auth', authRoutes);
-app.use('/gyms', gymRoutes);
-app.use('/members', memberRoutes);
-app.use('/attendance', attendanceRoutes);
-app.use('/alerts', alertRoutes);
-app.use('/plans', planRoutes);
-app.use('/users', userRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/gyms', gymRoutes);
+app.use('/api/v1/members', memberRoutes);
+app.use('/api/v1/attendance', attendanceRoutes);
+app.use('/api/v1/alerts', alertRoutes);
+app.use('/api/v1/plans', planRoutes);
+app.use('/api/v1/users', userRoutes); 
 
 // Health check
 app.get('/health', (req, res) => {
