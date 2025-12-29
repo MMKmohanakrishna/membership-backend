@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import rateLimit from 'express-rate-limit';
+
 import connectDB from './src/config/database.js';
 import { initializeSocket } from './src/socket/socketHandler.js';
 
@@ -20,7 +21,7 @@ import alertRoutes from './src/routes/alertRoutes.js';
 import planRoutes from './src/routes/planRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
 
-// Load environment variables
+// Load environment variables (MUST be at top)
 dotenv.config();
 
 // Create Express app
@@ -30,7 +31,7 @@ const httpServer = createServer(app);
 // Initialize Socket.io
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL || '*',
     credentials: true,
   },
 });
@@ -48,7 +49,7 @@ app.set('io', io);
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || '*',
   credentials: true,
 }));
 app.use(express.json());
@@ -57,19 +58,23 @@ app.use(cookieParser());
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // limit each IP to 1000 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
   message: 'Too many requests from this IP, please try again later.',
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20, // limit each IP to 20 login requests per windowMs
+  max: 20,
   message: 'Too many login attempts, please try again later.',
 });
 
-app.use('/api/', limiter);
-app.use('/api/v1/auth/login', authLimiter);
+// Apply general rate limiter to all API routes
+app.use('/', limiter);
+// Apply stricter rate limit to auth login endpoint
+app.use('/auth/login', authLimiter);
+
+// Routes mounted at root-level paths per specification
 // Temporary health/check route for POST diagnostics
 app.post('/__test_post', (req, res) => {
   console.log('DEBUG: Received POST /__test_post');
@@ -77,19 +82,18 @@ app.post('/__test_post', (req, res) => {
 });
 
 console.log('DEBUG: Mounting auth and API routes now');
-// Routes
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/gyms', gymRoutes); // Super admin only
-app.use('/api/v1/members', memberRoutes);
-app.use('/api/v1/attendance', attendanceRoutes);
-app.use('/api/v1/alerts', alertRoutes);
-app.use('/api/v1/plans', planRoutes);
-app.use('/api/v1/users', userRoutes);
+app.use('/auth', authRoutes);
+app.use('/gyms', gymRoutes);
+app.use('/members', memberRoutes);
+app.use('/attendance', attendanceRoutes);
+app.use('/alerts', alertRoutes);
+app.use('/plans', planRoutes);
+app.use('/users', userRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     message: 'Server is running',
     timestamp: new Date().toISOString(),
   });
@@ -109,16 +113,14 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({
     success: false,
     message: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 });
 
 // Start server
-// Default backend port changed to 5002 to avoid conflicts
 const PORT = process.env.PORT || 5002;
 httpServer.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📱 Environment: ${process.env.NODE_ENV}`);
+  console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 // Graceful shutdown

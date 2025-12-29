@@ -93,15 +93,18 @@ export const login = asyncHandler(async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
-  successResponse(res, 200, 'Login successful', {
-    accessToken,
-    user: {
-      id: user._id,
-      email: user.email,
-      name: user.name,
-      phone: user.phone,
-      role: user.role,
-      // Never expose gymId to client for security
+  // Return exact response shape expected by frontend
+  return res.status(200).json({
+    success: true,
+    data: {
+      accessToken,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        phone: user.phone,
+        role: user.role,
+      },
     },
   });
 });
@@ -142,7 +145,7 @@ export const refreshToken = asyncHandler(async (req, res) => {
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
