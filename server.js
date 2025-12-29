@@ -72,7 +72,7 @@ const authLimiter = rateLimit({
 // Apply general rate limiter to all API routes
 app.use('/', limiter);
 // Apply stricter rate limit to auth login endpoint
-app.use('/auth/login', authLimiter);
+app.use('/api/v1/auth', authRoutes);
 
 // Routes mounted at root-level paths per specification
 // Temporary health/check route for POST diagnostics
