@@ -99,6 +99,20 @@ app.get('/health', (req, res) => {
   });
 });
 
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Membership Backend API is running 🚀',
+    health: '/health',
+    time: new Date().toISOString(),
+  });
+});
+
+// 🔥 OPTIONAL: Handle HEAD requests (Render sends this)
+app.head('/', (req, res) => {
+  res.sendStatus(200);
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
