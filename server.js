@@ -71,8 +71,9 @@ const authLimiter = rateLimit({
 
 // Apply general rate limiter to all API routes
 app.use('/', limiter);
-// Apply stricter rate limit to auth login endpoint
-app.use('/api/v1/auth', authRoutes);
+
+// Apply stricter rate limit ONLY to login
+app.use('/api/v1/auth/login', authLimiter);
 
 // Routes mounted at root-level paths per specification
 // Temporary health/check route for POST diagnostics
@@ -82,13 +83,14 @@ app.post('/__test_post', (req, res) => {
 });
 
 console.log('DEBUG: Mounting auth and API routes now');
+
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/gyms', gymRoutes);
 app.use('/api/v1/members', memberRoutes);
 app.use('/api/v1/attendance', attendanceRoutes);
 app.use('/api/v1/alerts', alertRoutes);
 app.use('/api/v1/plans', planRoutes);
-app.use('/api/v1/users', userRoutes); 
+app.use('/api/v1/users', userRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
